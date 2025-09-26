@@ -3,24 +3,243 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Paleta corporativa basada en el logo DG Producciones */
+  --accent: #1e40af; /* blue-800 - Azul corporativo principal */
+  --accent-2: #3b82f6; /* blue-500 - Azul medio */
+  --accent-3: #60a5fa; /* blue-400 - Azul claro */
+  --secondary: #059669; /* green-600 - Verde corporativo */
+  --tertiary: #ea580c; /* orange-600 - Naranja corporativo */
+  --accent-4: #06d9c5; /* cyan brillante */
+  --accent-warm: #f59e0b; /* amber-500 */
+  --accent-purple: #8b5cf6; /* violet-500 */
+  --accent-contrast: #ffffff;
+  --gradient-primary: linear-gradient(135deg, #0f766e 0%, #06d9c5 50%, #14b8a6 100%);
+  --gradient-warm: linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%);
+  --shadow-glow: 0 20px 25px -5px rgba(14, 165, 166, 0.1), 0 10px 10px -5px rgba(14, 165, 166, 0.04);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* Tailwind v4 ya expone utilidades; evitamos @theme personalizado para compatibilidad */
 
+/* Forzamos un modo "oscuro" suave manteniendo fondo claro para evitar negros plenos */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #f7f7f7; /* claro también en dark */
+    --foreground: #1a1a1a;
   }
 }
 
 body {
-  background: var(--background);
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(14, 165, 166, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.04) 0%, transparent 50%),
+    linear-gradient(135deg, 
+      rgba(247, 250, 252, 1) 0%,
+      rgba(241, 245, 249, 1) 25%,
+      rgba(248, 250, 252, 1) 50%,
+      rgba(243, 244, 246, 1) 75%,
+      rgba(249, 250, 251, 1) 100%
+    );
+  background-attachment: fixed;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  min-height: 100vh;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body), system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  position: relative;
+}
+
+/* Efecto de textura sutil para profundidad */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 25% 25%, rgba(14, 165, 166, 0.03) 0%, transparent 25%),
+    radial-gradient(circle at 75% 75%, rgba(245, 158, 11, 0.03) 0%, transparent 25%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+html { scroll-behavior: smooth; }
+
+h1, h1.font-title { font-family: var(--font-heading), var(--font-title), var(--font-body), sans-serif !important; }
+h2, h3, .font-title { font-family: var(--font-title), var(--font-body), sans-serif; }
+
+.text-accent { color: var(--accent); }
+.bg-accent { background: var(--accent); color: var(--accent-contrast); }
+.bg-accent-gradient { background: var(--gradient-primary); color: var(--accent-contrast); }
+.bg-accent-warm { background: var(--gradient-warm); color: var(--accent-contrast); }
+.ring-accent { --tw-ring-color: color-mix(in oklab, var(--accent), transparent 40%); }
+.shadow-glow { box-shadow: var(--shadow-glow); }
+
+/* Efectos llamativos para eventos BTL */
+.shimmer {
+  background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,0.8) 50%, transparent 60%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(14, 165, 166, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(14, 165, 166, 0.6), 0 0 80px rgba(14, 165, 166, 0.2); }
+}
+
+/* Fondo dinámico con formas orgánicas */
+.dynamic-bg {
+  background: 
+    radial-gradient(ellipse at top, rgba(14, 165, 166, 0.15) 0%, transparent 70%),
+    radial-gradient(ellipse at bottom right, rgba(245, 158, 11, 0.12) 0%, transparent 70%),
+    radial-gradient(ellipse at bottom left, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+  background-attachment: fixed;
+}
+
+/* Secciones llamativas y patrones dinámicos */
+.section-alt {
+  background: linear-gradient(180deg, rgba(20,184,166,0.08) 0%, rgba(6,217,197,0.06) 50%, rgba(245,158,11,0.04) 100%);
+}
+
+.section-premium {
+  background: 
+    linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(247, 250, 252, 0.9) 50%,
+      rgba(255, 255, 255, 0.95) 100%
+    ),
+    radial-gradient(circle at 30% 70%, rgba(14, 165, 166, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(245, 158, 11, 0.08) 0%, transparent 50%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.pattern-dots {
+  background-image:
+    radial-gradient(currentColor 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+  color: rgba(14, 165, 166, 0.15);
+}
+
+.pattern-grid {
+  background-image: 
+    linear-gradient(rgba(14, 165, 166, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 165, 166, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.floating-shapes::before,
+.floating-shapes::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(14, 165, 166, 0.1), rgba(245, 158, 11, 0.1));
+  animation: float 6s ease-in-out infinite;
+}
+
+.floating-shapes::before {
+  width: 200px;
+  height: 200px;
+  top: 10%;
+  right: 10%;
+  animation-delay: -3s;
+}
+
+.floating-shapes::after {
+  width: 150px;
+  height: 150px;
+  bottom: 15%;
+  left: 5%;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-20px) rotate(5deg); }
+  66% { transform: translateY(10px) rotate(-3deg); }
+}
+
+/* Animaciones más dinámicas y llamativas */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 600ms ease-out both;
+}
+
+@keyframes zoom-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-zoom-in { 
+  animation: zoom-in 500ms ease-out both; 
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-slide-in-left {
+  animation: slide-in-left 700ms ease-out both;
+}
+
+@keyframes bounce-in {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-bounce-in {
+  animation: bounce-in 800ms ease-out both;
+}
+
+/* Animaciones premium adicionales */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+@keyframes shimmer-effect {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+.shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transform: translateX(-100%);
+  animation: shimmer-effect 2s infinite;
+  pointer-events: none;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(20, 184, 166, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(20, 184, 166, 0.6); }
+}
+.glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.hover-lift {
+  transition: transform 300ms ease, box-shadow 300ms ease;
+}
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -10px rgba(14, 165, 166, 0.25);
 }

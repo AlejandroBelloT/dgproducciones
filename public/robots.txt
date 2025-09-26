@@ -1,0 +1,67 @@
+# Robots.txt para DG Producciones
+# Optimizado para SEO y rastreo inteligente
+
+User-agent: *
+Allow: /
+
+# Páginas principales permitidas
+Allow: /_next/static/
+Allow: /images/
+Allow: /iconos/
+Allow: /favicon.ico
+
+# Bloquear rutas administrativas del SEO público
+Disallow: /admin/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /private/
+
+# Permitir bots específicos importantes
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Bots de IA para LLMO (Language Model Marketing Optimization)
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Bloquear bots problemáticos
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Configuración de rastreo
+Crawl-delay: 1
+
+# Ubicación del sitemap
+Sitemap: https://dgproducciones.cl/sitemap.xml
+Sitemap: https://dgproducciones.cl/llm.txt
+
+# Cache y frecuencia
+# Las páginas principales se actualizan semanalmente
+# Los proyectos y testimonios mensualmente

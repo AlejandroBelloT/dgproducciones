@@ -34,3 +34,31 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+## DG Producciones — Landing + Panel Admin
+
+La landing consume contenido dinámico para la galería desde `/admin/content`.
+
+Para que las imágenes aparezcan en la sección “Proyectos Destacados”:
+
+- Crea o edita entradas en `/admin/content` con:
+  - `type`: `project` o `gallery`
+  - `status`: `published`
+  - `data`: objeto con una de estas propiedades:
+    - `images`: array de URLs
+    - o `image`: una URL
+
+Ejemplo de `data`:
+
+```json
+{
+  "images": [
+    "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=1600&auto=format&fit=crop",
+    "/gallery/proyecto1.jpg"
+  ]
+}
+```
+
+Si no hay elementos publicados, la galería muestra imágenes de demo (Unsplash). Para usar URLs externas recuerda agregarlas a `next.config.mjs` en `images.remotePatterns`.
