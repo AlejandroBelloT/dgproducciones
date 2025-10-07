@@ -21,6 +21,11 @@ const NAVIGATION_ITEMS = [
         id: 'team',
         label: '👥 Equipo',
         icon: '👥'
+    },
+    {
+        id: 'users',
+        label: '👤 Usuarios',
+        icon: '👤'
     }
 ]
 
@@ -54,8 +59,8 @@ export default function AdminNavigation({
                                 key={item.id}
                                 onClick={() => handleSectionChange(item.id)}
                                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors relative ${activeSection === item.id
-                                        ? 'bg-blue-100 text-blue-700'
-                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 {item.label}
@@ -103,8 +108,8 @@ export default function AdminNavigation({
                                 key={item.id}
                                 onClick={() => handleSectionChange(item.id)}
                                 className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center justify-between ${activeSection === item.id
-                                        ? 'bg-blue-100 text-blue-700'
-                                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                                     }`}
                             >
                                 <span>{item.label}</span>

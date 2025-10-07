@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
+import { getUserFromRequest } from '@/lib/auth';
+import { sendContactConfirmationEmail } from '@/lib/email';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 // Constantes para valores ENUM de la base de datos
 const VALID_STATUSES = ['nuevo', 'contactado', 'seguimiento', 'cerrado'];
@@ -22,12 +24,39 @@ function validateEnumValues(status, priority) {
     return errors;
 }
 
+// Función para registrar acciones de auditoría
+async function logContactAction(contactId, actionType, previousStatus, newStatus, notes, userData) {
+    try {
+        const actionQuery = `
+            INSERT INTO contact_actions (
+                contact_id, user_id, action_type, previous_status, 
+                new_status, notes, user_name, user_email
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        await executeQuery(actionQuery, [
+            contactId,
+            userData?.id || 1, // Default a admin si no hay usuario
+            actionType,
+            previousStatus,
+            newStatus,
+            notes,
+            userData?.name || 'Sistema',
+            userData?.email || 'sistema@dgproducciones.com'
+        ]);
+    } catch (error) {
+        console.error('Error logging contact action:', error);
+        // No lanzar error para no interrumpir la operación principal
+    }
+}
+
 export async function GET() {
     try {
         const query = `
             SELECT id, name, email, phone, company, message, status, priority, 
                    source, budget_estimated, event_date, service_type, notes, 
-                   assigned_to, created_at, updated_at
+                   assigned_to, created_by, created_by_name, last_modified_by, 
+                   last_modified_by_name, last_modified_at, created_at, updated_at
             FROM contacts 
             ORDER BY created_at DESC
         `;
@@ -49,6 +78,17 @@ export async function POST(req) {
             name, email, message, company, phone,
             service_type, budget_estimated, event_date
         } = body || {};
+
+        // Obtener datos del usuario (puede ser null para formularios públicos)
+        const userData = getUserFromRequest(req);
+
+        // Para formularios públicos, usar datos por defecto
+        const defaultUserData = {
+            id: 1, // Usuario del sistema por defecto
+            name: 'Sistema Web'
+        };
+
+        const effectiveUserData = userData || defaultUserData;
 
         // Validación básica
         if (!name || !email || !message) {
@@ -84,14 +124,15 @@ export async function POST(req) {
             INSERT INTO contacts (
                 name, email, phone, company, message, 
                 source, status, priority, service_type, 
-                budget_estimated, event_date
+                budget_estimated, event_date, created_by, created_by_name
             )
-            VALUES (?, ?, ?, ?, ?, 'formulario_web', 'nuevo', ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, 'formulario_web', 'nuevo', ?, ?, ?, ?, ?, ?)
         `;
 
         console.log('📝 Guardando contacto:', {
             name, email, phone, company, service_type,
-            budget_estimated, event_date, priority
+            budget_estimated, event_date, priority,
+            userData: effectiveUserData
         });
 
         const result = await executeQuery(query, [
@@ -103,19 +144,59 @@ export async function POST(req) {
             priority,
             service_type || null,
             budget_estimated ? parseFloat(budget_estimated) : null,
-            event_date || null
+            event_date || null,
+            effectiveUserData.id,
+            effectiveUserData.name
         ]);
+
+        // Registrar acción de creación
+        await logContactAction(
+            result.insertId,
+            'created',
+            null,
+            'nuevo',
+            `Contacto creado desde formulario web. Mensaje: ${message.substring(0, 100)}...`,
+            userData
+        );
 
         // Obtener el contacto recién creado
         const newContactQuery = `
             SELECT id, name, email, phone, company, message, status, priority,
-                   service_type, budget_estimated, event_date, created_at
+                   service_type, budget_estimated, event_date, created_by, 
+                   created_by_name, created_at
             FROM contacts 
             WHERE id = ?
         `;
-        const [newContact] = await executeQuery(newContactQuery, [result.insertId]);
+        const newContactResult = await executeQuery(newContactQuery, [result.insertId]);
+        const newContact = newContactResult[0];
 
         console.log('✅ Contacto guardado exitosamente:', newContact);
+
+        // Enviar email automático de confirmación
+        try {
+            console.log('📧 Enviando email de confirmación a:', email);
+
+            const emailResult = await sendContactConfirmationEmail({
+                name,
+                email,
+                phone,
+                company,
+                message,
+                service_type,
+                budget_estimated,
+                event_date
+            });
+
+            if (emailResult.success) {
+                console.log('✅ Email de confirmación enviado exitosamente:', emailResult.messageId);
+            } else {
+                console.error('❌ Error enviando email de confirmación:', emailResult.error);
+                // No fallar la operación si el email falla, solo logear el error
+            }
+        } catch (emailError) {
+            console.error('❌ Error enviando email de confirmación:', emailError);
+            // No fallar la operación si el email falla
+        }
 
         return NextResponse.json(newContact, { status: 201 });
 
@@ -135,9 +216,24 @@ export async function PATCH(req) {
 
         console.log('📥 PATCH request received:', { id, status, priority, assigned_to, notes, service_type });
 
+        // Obtener datos del usuario
+        const userData = getUserFromRequest(req);
+
         if (!id) {
             console.log('❌ ID missing in PATCH request');
             return NextResponse.json({ error: 'ID es requerido' }, { status: 400 });
+        }
+
+        // Obtener estado actual del contacto para auditoría
+        const currentContactQuery = `
+            SELECT status, priority, assigned_to, notes, service_type 
+            FROM contacts WHERE id = ?
+        `;
+        const currentContactResult = await executeQuery(currentContactQuery, [id]);
+        const currentContact = currentContactResult[0];
+
+        if (!currentContact) {
+            return NextResponse.json({ error: 'Contacto no encontrado' }, { status: 404 });
         }
 
         // Validar valores ENUM
@@ -180,6 +276,10 @@ export async function PATCH(req) {
             return NextResponse.json({ error: 'No hay campos para actualizar' }, { status: 400 });
         }
 
+        // Agregar campos de auditoría
+        updates.push('last_modified_by = ?', 'last_modified_by_name = ?', 'last_modified_at = CURRENT_TIMESTAMP');
+        values.push(userData.id, userData.name);
+
         values.push(id);
 
         const query = `
@@ -193,14 +293,50 @@ export async function PATCH(req) {
 
         await executeQuery(query, values);
 
+        // Registrar acciones de auditoría
+        if (status && status !== currentContact.status) {
+            await logContactAction(
+                id,
+                'status_changed',
+                currentContact.status,
+                status,
+                `Estado cambiado de "${currentContact.status}" a "${status}"`,
+                userData
+            );
+        }
+
+        if (notes && notes !== currentContact.notes) {
+            await logContactAction(
+                id,
+                'note_added',
+                null,
+                null,
+                notes,
+                userData
+            );
+        }
+
+        if (assigned_to !== undefined && assigned_to !== currentContact.assigned_to) {
+            await logContactAction(
+                id,
+                'updated',
+                null,
+                null,
+                `Contacto asignado a: ${assigned_to || 'Sin asignar'}`,
+                userData
+            );
+        }
+
         // Obtener el contacto actualizado
         const updatedContactQuery = `
             SELECT id, name, email, phone, company, message, status, priority, 
-                   source, assigned_to, notes, service_type, created_at, updated_at
+                   source, assigned_to, notes, service_type, last_modified_by,
+                   last_modified_by_name, last_modified_at, created_at, updated_at
             FROM contacts 
             WHERE id = ?
         `;
-        const [updatedContact] = await executeQuery(updatedContactQuery, [id]);
+        const updatedContactResult = await executeQuery(updatedContactQuery, [id]);
+        const updatedContact = updatedContactResult[0];
 
         if (!updatedContact) {
             return NextResponse.json({ error: 'Contacto no encontrado' }, { status: 404 });
@@ -306,22 +442,40 @@ export async function DELETE(req) {
         const body = await req.json();
         const { id } = body || {};
 
+        // Obtener datos del usuario
+        const userData = getUserFromRequest(req);
+
         if (!id) {
             return NextResponse.json({ error: 'ID es requerido' }, { status: 400 });
         }
 
-        // Verificar que el contacto existe antes de eliminarlo
-        const checkQuery = 'SELECT id FROM contacts WHERE id = ?';
-        const [existingContact] = await executeQuery(checkQuery, [id]);
+        // Verificar que el contacto existe antes de eliminarlo y obtener sus datos
+        const checkQuery = 'SELECT id, name, email, status FROM contacts WHERE id = ?';
+        const checkResult = await executeQuery(checkQuery, [id]);
+        const existingContact = checkResult[0];
 
         if (!existingContact) {
             return NextResponse.json({ error: 'Contacto no encontrado' }, { status: 404 });
         }
 
+        // Registrar acción de eliminación antes de eliminar
+        await logContactAction(
+            id,
+            'deleted',
+            existingContact.status,
+            null,
+            `Contacto eliminado: ${existingContact.name} (${existingContact.email})`,
+            userData
+        );
+
         const query = 'DELETE FROM contacts WHERE id = ?';
         await executeQuery(query, [id]);
 
-        return NextResponse.json({ ok: true, message: 'Contacto eliminado exitosamente' });
+        return NextResponse.json({
+            ok: true,
+            message: 'Contacto eliminado exitosamente',
+            deletedBy: userData.name
+        });
 
     } catch (error) {
         console.error('Error deleting contact:', error);

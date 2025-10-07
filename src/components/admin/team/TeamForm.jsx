@@ -149,22 +149,22 @@ export default function TeamForm({
 
     return (
         <Card className="shadow-lg">
-            <CardHeader>
-                <CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-xl sm:text-2xl">
                     {editingMember ? 'Editar Colaborador' : 'Nuevo Colaborador'}
                 </CardTitle>
             </CardHeader>
-            <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+            <CardContent className="p-4 sm:p-6">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                     {errors.submit && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                             {errors.submit}
                         </div>
                     )}
 
-                    <div className="grid md:grid-cols-2 gap-6">
+                    <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                         {/* Left Column */}
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Nombre Completo *
@@ -173,7 +173,7 @@ export default function TeamForm({
                                     type="text"
                                     value={formData.name}
                                     onChange={(e) => handleChange('name', e.target.value)}
-                                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${errors.name ? 'border-red-300' : 'border-gray-300'
+                                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base ${errors.name ? 'border-red-300' : 'border-gray-300'
                                         }`}
                                     placeholder="Ej: Juan Pérez"
                                     disabled={loading}
@@ -191,7 +191,7 @@ export default function TeamForm({
                                     type="text"
                                     value={formData.role}
                                     onChange={(e) => handleChange('role', e.target.value)}
-                                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${errors.role ? 'border-red-300' : 'border-gray-300'
+                                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base ${errors.role ? 'border-red-300' : 'border-gray-300'
                                         }`}
                                     placeholder="Ej: Productor de Eventos"
                                     disabled={loading}
@@ -208,7 +208,7 @@ export default function TeamForm({
                                 <select
                                     value={formData.department}
                                     onChange={(e) => handleChange('department', e.target.value)}
-                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base"
                                     disabled={loading}
                                 >
                                     {DEPARTMENTS.map(dept => (
@@ -221,7 +221,7 @@ export default function TeamForm({
                         </div>
 
                         {/* Right Column */}
-                        <div className="space-y-4">
+                        <div className="space-y-3 sm:space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     Teléfono *
@@ -230,7 +230,7 @@ export default function TeamForm({
                                     type="tel"
                                     value={formData.phone}
                                     onChange={(e) => handleChange('phone', e.target.value)}
-                                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${errors.phone ? 'border-red-300' : 'border-gray-300'
+                                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base ${errors.phone ? 'border-red-300' : 'border-gray-300'
                                         }`}
                                     placeholder="+56 9 XXXX XXXX"
                                     disabled={loading}
@@ -248,7 +248,7 @@ export default function TeamForm({
                                     type="email"
                                     value={formData.email}
                                     onChange={(e) => handleChange('email', e.target.value)}
-                                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 ${errors.email ? 'border-red-300' : 'border-gray-300'
+                                    className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm sm:text-base ${errors.email ? 'border-red-300' : 'border-gray-300'
                                         }`}
                                     placeholder="nombre@dgproducciones.cl"
                                     disabled={loading}
@@ -266,7 +266,7 @@ export default function TeamForm({
                                     type="file"
                                     accept="image/jpeg,image/png,image/jpg"
                                     onChange={handlePhotoChange}
-                                    className="w-full p-2 border border-gray-300 rounded-lg"
+                                    className="w-full p-2 border border-gray-300 rounded-lg text-sm sm:text-base"
                                     disabled={loading}
                                 />
                                 {errors.photo && (
@@ -285,12 +285,12 @@ export default function TeamForm({
                         </div>
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
                         <Button
                             type="submit"
                             variant="primary"
                             disabled={loading}
-                            className="flex-1 md:flex-none"
+                            className="w-full sm:flex-1 md:flex-none"
                         >
                             {loading ? 'Guardando...' :
                                 editingMember ? 'Actualizar Colaborador' : 'Agregar Colaborador'}
@@ -300,6 +300,7 @@ export default function TeamForm({
                             variant="outline"
                             onClick={handleCancel}
                             disabled={loading}
+                            className="w-full sm:w-auto"
                         >
                             Cancelar
                         </Button>

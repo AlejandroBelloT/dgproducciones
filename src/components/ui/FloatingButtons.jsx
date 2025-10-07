@@ -39,19 +39,19 @@ export default function FloatingButtons() {
     }
 
     return (
-        <div className={`fixed right-4 bottom-4 z-50 flex flex-col gap-3 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'
+        <div className={`fixed right-4 bottom-20 z-50 flex flex-col transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0'
             }`}>
             {/* Botón WhatsApp */}
             <button
                 onClick={handleWhatsAppClick}
-                className="group relative w-14 h-14 flex items-center justify-center hover:shadow-xl transform hover:scale-110 transition-all duration-300 "
+                className="group relative w-14 h-14 flex items-center justify-center hover:shadow-xl transform hover:scale-110 transition-all duration-300 cursor-pointer"
                 title="WhatsApp - ¡Conversemos!"
             >
                 <Image
                     src="/iconos/whatsapp.png"
                     alt="WhatsApp"
-                    width={56}
-                    height={56}
+                    width={42}
+                    height={42}
                     className="object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-lg"
                 />
                 {/* Tooltip */}
@@ -72,8 +72,8 @@ export default function FloatingButtons() {
                 <Image
                     src="/iconos/instagram.png"
                     alt="Instagram"
-                    width={56}
-                    height={56}
+                    width={42}
+                    height={42}
                     className="object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-lg"
                 />
                 {/* Tooltip */}

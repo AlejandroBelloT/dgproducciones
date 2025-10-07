@@ -1,179 +1,188 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
-import { StatusBadge, ContactActions } from './AdminComponents'
-import Button from '@/components/ui/Button'
+import { useState, useEffect } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { StatusBadge, ContactActions } from './AdminComponents';
+import Button from '@/components/ui/Button';
+import ContactHistory from './contacts/ContactHistory';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ContactManagement() {
-    const [contacts, setContacts] = useState([])
-    const [loading, setLoading] = useState(true)
-    const [filter, setFilter] = useState('all')
+    const { token } = useAuth();
+    const [contacts, setContacts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showHistory, setShowHistory] = useState(false);
+    const [selectedContactId, setSelectedContactId] = useState(null);
 
     useEffect(() => {
-        fetchContacts()
-    }, [])
+        fetchContacts();
+    }, []);
+
+    const getAuthHeaders = () => {
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        return headers;
+    };
 
     const fetchContacts = async () => {
+        setLoading(true);
         try {
-            const response = await fetch('/api/contacts')
-            const data = await response.json()
-            setContacts(data || [])
-        } catch (error) {
-            console.error('Error fetching contacts:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    const updateContactStatus = async (id, status) => {
-        try {
-            const response = await fetch('/api/contacts', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, status })
-            })
-
+            const response = await fetch('/api/contacts/', {
+                headers: getAuthHeaders()
+            });
             if (response.ok) {
-                setContacts(contacts.map(contact =>
-                    contact.id === id ? { ...contact, status } : contact
-                ))
+                const data = await response.json();
+                setContacts(Array.isArray(data) ? data : []);
+            } else {
+                console.error('Error fetching contacts:', response.statusText);
             }
         } catch (error) {
-            console.error('Error updating contact status:', error)
+            console.error('Error fetching contacts:', error);
         }
-    }
+        setLoading(false);
+    };
 
     const deleteContact = async (id) => {
-        if (!confirm('¿Estás seguro de eliminar este contacto?')) return
+        if (confirm('¿Estás seguro de que quieres eliminar este contacto?')) {
+            try {
+                const response = await fetch('/api/contacts/', {
+                    method: 'DELETE',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ id }),
+                });
+                if (response.ok) {
+                    fetchContacts();
+                } else {
+                    alert('Error al eliminar el contacto');
+                }
+            } catch (error) {
+                console.error('Error deleting contact:', error);
+                alert('Error al eliminar el contacto');
+            }
+        }
+    };
 
+    const updateContactStatus = async (id, newStatus) => {
         try {
-            const response = await fetch('/api/contacts', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
-            })
-
+            const response = await fetch('/api/contacts/', {
+                method: 'PATCH',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id, status: newStatus }),
+            });
             if (response.ok) {
-                setContacts(contacts.filter(contact => contact.id !== id))
+                fetchContacts();
+            } else {
+                alert('Error al actualizar el estado del contacto');
             }
         } catch (error) {
-            console.error('Error deleting contact:', error)
+            console.error('Error updating contact status:', error);
+            alert('Error al actualizar el estado del contacto');
         }
-    }
+    };
+
+    const openHistory = (contactId) => {
+        setSelectedContactId(contactId);
+        setShowHistory(true);
+    };
+
+    const closeHistory = () => {
+        setShowHistory(false);
+        setSelectedContactId(null);
+    };
 
     const filteredContacts = contacts.filter(contact => {
-        if (filter === 'all') return true
-        return contact.status === filter
-    })
+        const matchesFilter = filter === 'all' || contact.status === filter;
+        const matchesSearch = searchTerm === '' ||
+            contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            contact.email.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesFilter && matchesSearch;
+    });
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+        });
+    };
 
     const getStatusCount = (status) => {
-        return contacts.filter(c => c.status === status).length
-    }
+        return contacts.filter(contact => contact.status === status).length;
+    };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center p-8">
-                <div className="text-lg">Cargando contactos...</div>
-            </div>
-        )
-    }
-
-    return (
-        <div className="space-y-4 sm:space-y-6">
-            {/* Estadísticas - Responsivo */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-3 sm:p-4 text-center">
-                        <div className="text-lg sm:text-2xl font-bold text-gray-800">{contacts.length}</div>
-                        <div className="text-xs sm:text-sm text-gray-600">Total</div>
-                    </CardContent>
-                </Card>
-                <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-3 sm:p-4 text-center">
-                        <div className="text-lg sm:text-2xl font-bold text-yellow-600">{getStatusCount('nuevo')}</div>
-                        <div className="text-xs sm:text-sm text-gray-600">Nuevos</div>
-                    </CardContent>
-                </Card>
-                <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-3 sm:p-4 text-center">
-                        <div className="text-lg sm:text-2xl font-bold text-blue-600">{getStatusCount('contactado')}</div>
-                        <div className="text-xs sm:text-sm text-gray-600">Contactados</div>
-                    </CardContent>
-                </Card>
-                <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-3 sm:p-4 text-center">
-                        <div className="text-lg sm:text-2xl font-bold text-green-600">{getStatusCount('seguimiento')}</div>
-                        <div className="text-xs sm:text-sm text-gray-600">En Seguimiento</div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Filtros - Responsivo */}
             <Card>
-                <CardHeader className="pb-3 sm:pb-4">
-                    <CardTitle className="text-base sm:text-lg">📋 Filtros</CardTitle>
+                <CardHeader>
+                    <CardTitle>Gestión de Contactos</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-                        <Button
-                            variant={filter === 'all' ? 'primary' : 'outline'}
-                            size="sm"
-                            onClick={() => setFilter('all')}
-                            className="text-xs sm:text-sm"
-                        >
-                            <span className="hidden sm:inline">Todos </span>
-                            <span className="sm:hidden">Todo </span>
-                            ({contacts.length})
-                        </Button>
-                        <Button
-                            variant={filter === 'nuevo' ? 'primary' : 'outline'}
-                            size="sm"
-                            onClick={() => setFilter('nuevo')}
-                            className="text-xs sm:text-sm"
-                        >
-                            Nuevos ({getStatusCount('nuevo')})
-                        </Button>
-                        <Button
-                            variant={filter === 'contactado' ? 'primary' : 'outline'}
-                            size="sm"
-                            onClick={() => setFilter('contactado')}
-                            className="text-xs sm:text-sm"
-                        >
-                            <span className="hidden sm:inline">Contactados</span>
-                            <span className="sm:hidden">Contact.</span>
-                            ({getStatusCount('contactado')})
-                        </Button>
-                        <Button
-                            variant={filter === 'seguimiento' ? 'primary' : 'outline'}
-                            size="sm"
-                            onClick={() => setFilter('seguimiento')}
-                            className="text-xs sm:text-sm"
-                        >
-                            <span className="hidden sm:inline">En Seguimiento</span>
-                            <span className="sm:hidden">Seguim.</span>
-                            ({getStatusCount('seguimiento')})
-                        </Button>
-                        <Button
-                            variant={filter === 'cerrado' ? 'primary' : 'outline'}
-                            size="sm"
-                            onClick={() => setFilter('cerrado')}
-                            className="text-xs sm:text-sm col-span-2 sm:col-span-1"
-                        >
-                            Cerrados ({getStatusCount('cerrado')})
-                        </Button>
+                    <div className="flex justify-center items-center py-8">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                            <p className="mt-2 text-gray-500">Cargando contactos...</p>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
+        );
+    }
 
-            {/* Lista de contactos - Responsivo */}
+    return (
+        <div className="space-y-4 sm:space-y-6 p-2 sm:p-4">
             <Card>
-                <CardHeader className="pb-3 sm:pb-4">
-                    <CardTitle className="text-base sm:text-lg">
-                        📬 Solicitudes de Contacto ({filteredContacts.length})
-                    </CardTitle>
+                <CardHeader className="pb-3">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <CardTitle className="text-lg sm:text-xl">Gestión de Contactos</CardTitle>
+                        <Button
+                            onClick={fetchContacts}
+                            className="text-xs sm:text-sm px-3 py-1.5 h-auto self-start sm:self-auto"
+                        >
+                            Actualizar
+                        </Button>
+                    </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <div className="flex flex-wrap gap-2">
+                            {['all', 'nuevo', 'contactado', 'seguimiento', 'cerrado'].map((status) => (
+                                <Button
+                                    key={status}
+                                    onClick={() => setFilter(status)}
+                                    variant={filter === status ? 'primary' : 'outline'}
+                                    className="text-xs px-2 py-1 h-auto"
+                                >
+                                    {status === 'all' ? 'Todos' :
+                                        status === 'nuevo' ? 'Nuevos' :
+                                            status === 'contactado' ? 'Contactados' :
+                                                status === 'seguimiento' ? 'En Seguimiento' : 'Cerrados'}
+                                    <span className="ml-1 text-xs opacity-75">
+                                        ({status === 'all' ? contacts.length : getStatusCount(status)})
+                                    </span>
+                                </Button>
+                            ))}
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre o email..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
                     <div className="space-y-3 sm:space-y-4">
                         {filteredContacts.length === 0 ? (
                             <div className="text-center py-8 sm:py-12">
@@ -190,10 +199,16 @@ export default function ContactManagement() {
                                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
                                                 <h3 className="font-semibold text-base sm:text-lg truncate">{contact.name}</h3>
                                                 <StatusBadge
-                                                    status={contact.status || 'pending'}
+                                                    status={contact.status || 'nuevo'}
                                                     onChange={updateContactStatus}
                                                     id={contact.id}
                                                 />
+                                                <div className="flex items-center gap-1 text-gray-700">
+                                                    <span>Fecha de creación:</span>
+                                                    <span className="text-md">
+                                                        {formatDate(contact.created_at || contact.timestamp)}
+                                                    </span>
+                                                </div>
                                             </div>
                                             <div className="text-xs sm:text-sm text-gray-600 space-y-1">
                                                 <div className="flex items-center gap-1 truncate">
@@ -201,9 +216,9 @@ export default function ContactManagement() {
                                                     <span className="truncate">{contact.email}</span>
                                                 </div>
                                                 {contact.phone && (
-                                                    <div className="flex items-center gap-1">
-                                                        <span>📞</span>
-                                                        <span>{contact.phone}</span>
+                                                    <div className="flex items-center gap-1 truncate">
+                                                        <span>📱</span>
+                                                        <span className="truncate">{contact.phone}</span>
                                                     </div>
                                                 )}
                                                 {contact.company && (
@@ -212,27 +227,52 @@ export default function ContactManagement() {
                                                         <span className="truncate">{contact.company}</span>
                                                     </div>
                                                 )}
-                                                <div className="flex items-center gap-1 text-gray-500">
-                                                    <span>📅</span>
-                                                    <span className="text-xs">
-                                                        {new Date(contact.createdAt || contact.timestamp).toLocaleDateString('es-ES', {
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: 'numeric',
-                                                            hour: '2-digit',
-                                                            minute: '2-digit'
-                                                        })}
-                                                    </span>
-                                                </div>
+                                                {contact.budget_estimated && (
+                                                    <div className="flex items-center gap-1 truncate">
+                                                        <span>💰</span>
+                                                        <span className="truncate">{contact.budget_estimated}</span>
+                                                    </div>
+                                                )}
+                                                {contact.event_date && (
+                                                    <div className="flex items-center gap-1 truncate">
+                                                        <span>📅</span>
+                                                        <span className="truncate">{formatDate(contact.event_date)}</span>
+                                                    </div>
+                                                )}
+                                                
+                                                {contact.created_by_name && (
+                                                    <div className="flex items-center gap-1 text-gray-500">
+                                                        <span>👤</span>
+                                                        <span className="text-xs">Creado por: {contact.created_by_name}</span>
+                                                    </div>
+                                                )}
+                                                {contact.last_modified_by_name && (
+                                                    <div className="flex items-center gap-1 text-gray-500">
+                                                        <span>✏️</span>
+                                                        <span className="text-xs">
+                                                            Modificado por: {contact.last_modified_by_name}
+                                                            {contact.last_modified_at && ` - ${formatDate(contact.last_modified_at)}`}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => deleteContact(contact.id)}
-                                            className="flex-shrink-0 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
-                                            title="Eliminar contacto"
-                                        >
-                                            🗑️
-                                        </button>
+                                        <div className="flex flex-col gap-2">
+                                            <button
+                                                onClick={() => openHistory(contact.id)}
+                                                className="flex-shrink-0 p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-full transition-colors"
+                                                title="Ver historial de acciones"
+                                            >
+                                                Historial
+                                            </button>
+                                            <button
+                                                onClick={() => deleteContact(contact.id)}
+                                                className="flex-shrink-0 p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                                                title="Eliminar contacto"
+                                            >
+                                                🗑️
+                                            </button>
+                                        </div>
                                     </div>
 
                                     {contact.message && (
@@ -244,6 +284,7 @@ export default function ContactManagement() {
 
                                     <div className="pt-2 border-t border-gray-100">
                                         <ContactActions
+                                            contactId={contact.id}
                                             email={contact.email}
                                             phone={contact.phone}
                                             name={contact.name}
@@ -255,6 +296,13 @@ export default function ContactManagement() {
                     </div>
                 </CardContent>
             </Card>
+
+            {showHistory && selectedContactId && (
+                <ContactHistory
+                    contactId={selectedContactId}
+                    onClose={closeHistory}
+                />
+            )}
         </div>
-    )
+    );
 }

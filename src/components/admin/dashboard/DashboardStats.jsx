@@ -10,12 +10,12 @@ const STATS_CONFIG = [
         target: 'contacts'
     },
     {
-        key: 'content',
+        key: 'projects',
         label: 'Proyectos/Eventos',
-        icon: '📸',
+        icon: '🎨',
         color: 'text-gray-800',
         clickable: true,
-        target: 'content'
+        target: 'projects'
     },
     {
         key: 'team',
@@ -25,14 +25,7 @@ const STATS_CONFIG = [
         clickable: true,
         target: 'team'
     },
-    {
-        key: 'completionRate',
-        label: 'Gestión Completada',
-        icon: '📊',
-        color: 'text-teal-600',
-        suffix: '%',
-        clickable: false
-    }
+
 ]
 
 export default function DashboardStats({
@@ -57,7 +50,7 @@ export default function DashboardStats({
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {STATS_CONFIG.map((config) => {
                 const value = stats[config.key] || 0
                 const isClickable = config.clickable && onCardClick
@@ -66,8 +59,8 @@ export default function DashboardStats({
                     <Card
                         key={config.key}
                         className={`transition-all duration-200 ${isClickable
-                                ? 'hover:shadow-lg cursor-pointer transform hover:-translate-y-1'
-                                : 'hover:shadow-md'
+                            ? 'hover:shadow-lg cursor-pointer transform hover:-translate-y-1'
+                            : 'hover:shadow-md'
                             }`}
                         onClick={isClickable ? () => onCardClick(config.target) : undefined}
                     >

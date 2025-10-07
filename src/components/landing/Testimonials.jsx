@@ -1,38 +1,37 @@
 export default function Testimonials() {
     const items = [
         {
-            quote: 'DG Producciones transformó nuestra activación en una experiencia inolvidable. Equipo comprometido y resultados impecables.',
-            author: 'Gerente de Marca, Empresa Retail',
+            quote: 'DG Producciones llevó nuestra idea desde un bosquejo en papel hasta una activación BTL que superó todas nuestras expectativas. Profesionalismo excepcional.',
+            author: 'Gerente de Marketing, Multinacional Retail',
         },
         {
-            quote: 'Excelente gestión y diseño de stand. Cumplieron plazos y superaron expectativas en cada detalle.',
-            author: 'Marketing Manager, Industria Tecnología',
+            quote: 'Su equipo humano es increíble. Modelos, promotores y staff perfectamente capacitados que representaron nuestra marca con pasión y profesionalismo.',
+            author: 'Director de Marca, Empresa Tecnológica',
         },
         {
-            quote: 'Profesionales, creativos y muy flexibles. Nuestros eventos han subido de nivel desde que trabajamos con ellos.',
-            author: 'Directora de Comunicaciones, Bebidas',
+            quote: 'Stands impactantes y funcionales hechos a la medida. Desde la primera idea hasta el último tornillo, todo in-house. Resultados que dejan huella.',
+            author: 'Marketing Manager, Sector Automotriz',
         },
     ];
 
     return (
         <section className="relative py-24 overflow-hidden">
             {/* Overlay sutil */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-purple-50/20 to-white/30"></div>
-            
-            {/* Efectos de fondo */}
-            <div className="absolute inset-0 pattern-dots opacity-10"></div>
-            <div className="absolute top-1/3 left-1/4 w-72 h-72 bg-gradient-to-br from-purple-200/10 to-pink-200/10 rounded-full blur-3xl"></div>
-            
+            <div className="absolute inset-0 bg-gradient-to-b from-white via-blue-50/10 to-white"></div>
+
+            {/* Efectos de fondo sutiles */}
+            <div className="absolute top-1/3 left-1/4 w-72 h-72 bg-gradient-to-br from-blue-200/8 to-gray-200/8 rounded-full blur-3xl"></div>
+
             <div className="relative z-10 max-w-6xl mx-auto px-4">
-                <h2 className="font-title text-3xl md:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-purple-600 via-pink-500 to-purple-700 bg-clip-text text-transparent">
-                    Lo que dicen nuestros clientes
+                <h2 className="font-title text-3xl md:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-blue-700 via-green-600 to-blue-700 bg-clip-text text-transparent">
+                    Grandes marcas confían en nosotros
                 </h2>
                 <div className="grid gap-6 md:grid-cols-3">
                     {items.map((t, i) => (
-                        <figure key={i} className="rounded-2xl border border-neutral-200 p-6 bg-white/80 backdrop-blur shadow-sm hover:shadow-md transition-shadow animate-fade-up hover-lift">
-                            <div className="text-amber-400 text-2xl mb-3">★ ★ ★ ★ ★</div>
+                        <figure key={i} className="rounded-xl border border-gray-200 p-6 bg-white shadow-sm hover:shadow-md transition-shadow animate-fade-up">
+                            <div className="text-blue-800 text-xl mb-3">★ ★ ★ ★ ★</div>
                             <blockquote className="text-gray-700 leading-relaxed mb-4">"{t.quote}"</blockquote>
-                            <figcaption className="text-sm text-gray-500 font-medium">— {t.author}</figcaption>
+                            <figcaption className="text-sm text-gray-600 font-medium">— {t.author}</figcaption>
                         </figure>
                     ))}
                 </div>

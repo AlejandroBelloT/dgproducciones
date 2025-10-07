@@ -1,37 +1,37 @@
-import MaintenancePage from '@/components/maintenance/MaintenancePage'
+import PublicHeader from '@/components/layout/PublicHeader'
+import PublicFooter from '@/components/layout/PublicFooter'
+import Hero from '@/components/landing/Hero'
+import Services from '@/components/landing/Services'
+import Projects from '@/components/landing/Projects'
+import Merchandising from '@/components/landing/Merchandising'
+import Testimonials from '@/components/landing/Testimonials'
+import FAQ from '@/components/landing/FAQ'
+import Contact from '@/components/landing/Contact'
+import FloatingButtons from '@/components/ui/FloatingButtons'
 
 // ========================================
 // CONFIGURACIÓN DE MANTENIMIENTO
 // ========================================
 // Cambiar MAINTENANCE_MODE a false para mostrar el sitio normal
-const MAINTENANCE_MODE = true
+const MAINTENANCE_MODE = false
 
 export default function Home() {
-  // Si está en modo mantenimiento, mostrar página de mantenimiento
-  if (MAINTENANCE_MODE) {
-    return <MaintenancePage />
-  }
-
-  // Sitio normal (cuando MAINTENANCE_MODE = false)
+  // Sitio normal
   return (
     <div className="font-sans">
-      {/* Importaciones comentadas para cuando se reactive el sitio */}
-      {/* 
       <PublicHeader />
       <main>
         <Hero />
         <Services />
         <Projects />
+        <Merchandising />
         <Testimonials />
         <FAQ />
         <Contact />
       </main>
       <PublicFooter />
       <FloatingButtons />
-      */}
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Sitio en construcción - Cambia MAINTENANCE_MODE a false en page.js</p>
-      </div>
     </div>
   )
+  // Eliminar llave sobrante
 }

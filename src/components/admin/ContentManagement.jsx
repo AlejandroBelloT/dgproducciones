@@ -88,10 +88,8 @@ export default function ContentManagement() {
         if (!confirm('¿Estás seguro de eliminar este contenido?')) return
 
         try {
-            const response = await fetch('/api/content', {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
+            const response = await fetch(`/api/projects?id=${id}`, {
+                method: 'DELETE'
             })
 
             if (response.ok) {

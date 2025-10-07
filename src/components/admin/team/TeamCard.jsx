@@ -70,7 +70,7 @@ export default function TeamCard({
                     <span className="mr-2">📧</span>
                     <span className="truncate">{member.email}</span>
                 </div>
-                
+
             </div>
 
             {/* Action Buttons - Centered */}
@@ -101,6 +101,7 @@ export default function TeamCard({
                     email={member.email}
                     phone={member.phone}
                     name={member.name}
+                    context="team"
                 />
             </div>
         </div>

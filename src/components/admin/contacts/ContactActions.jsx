@@ -1,6 +1,7 @@
 'use client'
 
 import Button from '@/components/ui/Button'
+import Image from 'next/image'
 
 const ACTION_CONFIG = {
     call: {
@@ -10,7 +11,7 @@ const ACTION_CONFIG = {
         unavailableColor: 'text-gray-400'
     },
     whatsapp: {
-        icon: '💬',
+        icon: <Image src="/iconos/whatsapp.png" alt="WhatsApp" width={18} height={18} />,
         label: 'WhatsApp',
         color: 'text-green-600 hover:bg-green-50',
         unavailableColor: 'text-gray-400'
@@ -26,7 +27,7 @@ const ACTION_CONFIG = {
 // Plantillas de mensajes predefinidas
 const MESSAGE_TEMPLATES = {
     customer: {
-        whatsapp: (name) => `Hola ${name}, nos contactaste a través de nuestra página web. ¿En qué podemos ayudarte?`,
+        whatsapp: (name) => `Hola ${name}, nos contactaste a través de nuestra página web. Queremos contactarnos contigo, ¿en qué horario podemos llamarte?`,
         email: {
             subject: (name) => `Seguimiento - Solicitud de cotización`,
             body: (name) => `Estimado/a ${name},\n\nGracias por contactarnos. Nos ponemos en contacto para dar seguimiento a tu solicitud.\n\nSaludos cordiales,\nEquipo DG Producciones`
@@ -52,6 +53,7 @@ export default function ContactActions({
     email,
     phone,
     name,
+    contactId, // Nuevo prop para el ID del contacto
     disabled = false,
     size = "md",
     layout = "horizontal", // "horizontal" | "vertical"
@@ -63,6 +65,28 @@ export default function ContactActions({
 }) {
     const cleanPhone = phone ? phone.replace(/\s/g, '').replace(/^\+/, '') : null
 
+    // Función para registrar acción en la base de datos
+    const logAction = async (actionType) => {
+        if (!contactId) return; // Solo registrar si tenemos ID del contacto
+
+        try {
+            const token = localStorage.getItem('adminToken');
+            await fetch('/api/contacts/actions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    contactId,
+                    actionType
+                })
+            });
+        } catch (error) {
+            console.error('Error registrando acción:', error);
+        }
+    };
+
     // Obtener plantillas de mensaje según el contexto
     const getMessageTemplate = () => {
         if (customMessages) return customMessages
@@ -71,14 +95,15 @@ export default function ContactActions({
 
     const messageTemplate = getMessageTemplate()
 
-    const handleCall = () => {
+    const handleCall = async () => {
         if (phone && !disabled) {
             window.location.href = `tel:${cleanPhone}`
             onActionClick?.('call', { name, phone, email })
+            await logAction('call')
         }
     }
 
-    const handleWhatsApp = () => {
+    const handleWhatsApp = async () => {
         if (phone && !disabled) {
             const message = typeof messageTemplate.whatsapp === 'function'
                 ? messageTemplate.whatsapp(name)
@@ -91,10 +116,11 @@ export default function ContactActions({
 
             window.open(whatsappUrl, '_blank')
             onActionClick?.('whatsapp', { name, phone, email })
+            await logAction('whatsapp')
         }
     }
 
-    const handleEmail = () => {
+    const handleEmail = async () => {
         if (email && !disabled) {
             const emailTemplate = messageTemplate.email || {}
 
@@ -124,6 +150,7 @@ export default function ContactActions({
 
             window.location.href = emailUrl
             onActionClick?.('email', { name, phone, email })
+            await logAction('email')
         }
     }
 

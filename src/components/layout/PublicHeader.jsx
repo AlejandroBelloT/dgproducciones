@@ -9,7 +9,7 @@ export default function PublicHeader() {
     const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
-        const sections = ['services', 'projects', 'contact'];
+        const sections = ['services', 'projects', 'merchandising', 'contact'];
         const els = sections.map((id) => document.getElementById(id)).filter(Boolean);
         const obs = new IntersectionObserver(
             (entries) => {

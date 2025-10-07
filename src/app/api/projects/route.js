@@ -61,7 +61,7 @@ export async function GET(req) {
 export async function POST(req) {
     try {
         const contentType = req.headers.get('content-type') || '';
-        let title, description, category;
+        let title, description, category, mainImageIndex = 0;
         let imagesPaths = [];
 
         if (contentType.includes('multipart/form-data')) {
@@ -69,14 +69,15 @@ export async function POST(req) {
             title = formData.get('title')?.toString().trim();
             description = formData.get('description')?.toString().trim() || null;
             category = formData.get('category') || 'eventos';
+            mainImageIndex = parseInt(formData.get('mainImageIndex') || '0');
             const files = formData.getAll('images');
 
-            // Guardar imágenes en /public/uploads (creamos carpeta si no existe)
+            // Guardar imágenes en /public/uploads
             if (files.length) {
                 const uploadDir = path.join(process.cwd(), 'public', 'uploads');
                 try { await fs.mkdir(uploadDir, { recursive: true }); } catch { }
                 for (const file of files) {
-                    if (typeof file === 'string') continue; // ignorar strings accidentales
+                    if (typeof file === 'string') continue;
                     const arrayBuffer = await file.arrayBuffer();
                     const buffer = Buffer.from(arrayBuffer);
                     const ext = (file.name?.split('.').pop() || 'jpg').replace(/[^a-zA-Z0-9]/g, '');
@@ -91,6 +92,7 @@ export async function POST(req) {
             title = body.title?.trim();
             description = body.description || null;
             category = body.category || 'eventos';
+            mainImageIndex = parseInt(body.mainImageIndex || '0');
             imagesPaths = Array.isArray(body.images) ? body.images : [];
         }
 
@@ -98,66 +100,40 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Título es requerido' }, { status: 400 });
         }
 
-        if (!category) {
-            return NextResponse.json({ error: 'Categoría es requerida' }, { status: 400 });
-        }
-
         if (!imagesPaths.length) {
             return NextResponse.json({ error: 'Al menos una imagen es requerida' }, { status: 400 });
         }
 
-        const mainImage = imagesPaths[0];
+        // Asegurar que mainImageIndex es válido
+        if (mainImageIndex < 0 || mainImageIndex >= imagesPaths.length) {
+            mainImageIndex = 0;
+        }
+
+        const mainImage = imagesPaths[mainImageIndex];
         const imagesJSON = JSON.stringify(imagesPaths);
 
-        console.log('🔧 Datos antes de INSERT:', {
-            title,
-            description,
-            category,
-            mainImage,
-            imagesPaths: imagesPaths,
-            imagesJSON
-        });
-
-        // INSERT solo con los campos del formulario
         const insertQuery = `
             INSERT INTO projects (title, description, category, main_image, images, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, NOW(), NOW())
         `;
 
-        console.log('🔧 Intentando INSERT con:', { title, description, category, mainImage, imagesJSON });
         const insertResult = await executeQuery(insertQuery, [
             title, description, category, mainImage, imagesJSON
         ]);
-        console.log('✅ INSERT exitoso, ID:', insertResult.insertId);
 
-        // SELECT solo los campos que necesita el frontend
         const [row] = await executeQuery(`
             SELECT id, title, description, category, main_image AS mainImage, images, created_at AS createdAt
             FROM projects WHERE id = ?
         `, [insertResult.insertId]);
 
-        console.log('📄 Datos recuperados de la BD:', {
-            row: row,
-            imagesType: typeof row?.images,
-            imagesValue: row?.images
-        });
-
-        // Parsear imágenes de forma segura
         let parsedImages = imagesPaths;
         if (row?.images) {
             try {
-                // Si es un string que parece JSON, intentar parsearlo
                 if (typeof row.images === 'string' && row.images.startsWith('[')) {
                     parsedImages = JSON.parse(row.images);
-                } else if (typeof row.images === 'string') {
-                    // Si es solo un string, convertirlo a array
-                    parsedImages = [row.images];
-                } else if (Array.isArray(row.images)) {
-                    parsedImages = row.images;
                 }
             } catch (parseError) {
-                console.error('⚠️ Error parseando imágenes, usando fallback:', parseError.message);
-                parsedImages = imagesPaths; // Usar las imágenes originales como fallback
+                parsedImages = imagesPaths;
             }
         }
 
@@ -166,12 +142,10 @@ export async function POST(req) {
             images: parsedImages
         }, { status: 201 });
     } catch (error) {
-        console.error('❌ Error completo creando proyecto:', error);
-        console.error('❌ Stack trace:', error.stack);
+        console.error('Error creating project:', error);
         return NextResponse.json({
             error: 'Error interno al crear proyecto',
-            details: error.message,
-            hint: 'Verifica que la tabla projects existe en la BD'
+            details: error.message
         }, { status: 500 });
     }
 }
@@ -260,6 +234,173 @@ export async function DELETE(req) {
         console.error('❌ Stack trace:', error.stack);
         return NextResponse.json({
             error: 'Error interno al eliminar proyecto',
+            details: error.message
+        }, { status: 500 });
+    }
+}
+
+export async function PUT(req) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'ID es requerido' }, { status: 400 });
+        }
+
+        console.log('🔧 Actualizando proyecto con ID:', id);
+
+        // Verificar que el proyecto existe
+        const [existingProject] = await executeQuery(`
+            SELECT id, title, main_image, images 
+            FROM projects WHERE id = ?
+        `, [id]);
+
+        if (!existingProject) {
+            return NextResponse.json({ error: 'Proyecto no encontrado' }, { status: 404 });
+        }
+
+        const contentType = req.headers.get('content-type') || '';
+        let title, description, category, mainImageIndex = 0;
+        let imagesPaths = [];
+
+        if (contentType.includes('multipart/form-data')) {
+            const formData = await req.formData();
+            title = formData.get('title')?.toString().trim();
+            description = formData.get('description')?.toString().trim() || null;
+            category = formData.get('category') || 'eventos';
+            mainImageIndex = parseInt(formData.get('mainImageIndex') || '0');
+            const files = formData.getAll('images');
+
+            // Procesar nuevas imágenes
+            if (files.length > 0) {
+                const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+                try { await fs.mkdir(uploadDir, { recursive: true }); } catch { }
+
+                for (const file of files) {
+                    if (typeof file === 'string') continue;
+                    const arrayBuffer = await file.arrayBuffer();
+                    const buffer = Buffer.from(arrayBuffer);
+                    const ext = (file.name?.split('.').pop() || 'jpg').replace(/[^a-zA-Z0-9]/g, '');
+                    const filename = `${crypto.randomUUID()}.${ext}`;
+                    const filePath = path.join(uploadDir, filename);
+                    await fs.writeFile(filePath, buffer);
+                    imagesPaths.push(`/uploads/${filename}`);
+                }
+
+                // Si hay nuevas imágenes, eliminar las antiguas
+                try {
+                    const oldImagesToDelete = [];
+
+                    // Agregar imagen principal antigua
+                    if (existingProject.main_image && existingProject.main_image.startsWith('/uploads/')) {
+                        oldImagesToDelete.push(path.join(process.cwd(), 'public', existingProject.main_image));
+                    }
+
+                    // Agregar imágenes adicionales antiguas
+                    if (existingProject.images) {
+                        const oldImages = typeof existingProject.images === 'string'
+                            ? JSON.parse(existingProject.images)
+                            : existingProject.images;
+
+                        if (Array.isArray(oldImages)) {
+                            oldImages.forEach(img => {
+                                if (img && img.startsWith('/uploads/')) {
+                                    oldImagesToDelete.push(path.join(process.cwd(), 'public', img));
+                                }
+                            });
+                        }
+                    }
+
+                    // Eliminar archivos físicos antiguos
+                    for (const filePath of oldImagesToDelete) {
+                        try {
+                            await fs.unlink(filePath);
+                            console.log('✅ Archivo antiguo eliminado:', filePath);
+                        } catch (fileError) {
+                            console.log('⚠️ No se pudo eliminar archivo antiguo:', filePath);
+                        }
+                    }
+                } catch (cleanupError) {
+                    console.error('⚠️ Error limpiando archivos antiguos:', cleanupError);
+                }
+            } else {
+                // Mantener imágenes existentes si no se suben nuevas
+                try {
+                    const existingImages = typeof existingProject.images === 'string'
+                        ? JSON.parse(existingProject.images)
+                        : existingProject.images;
+                    imagesPaths = Array.isArray(existingImages) ? existingImages : [];
+                } catch (parseError) {
+                    imagesPaths = [];
+                }
+            }
+        } else {
+            const body = await req.json();
+            title = body.title?.trim();
+            description = body.description || null;
+            category = body.category || 'eventos';
+            mainImageIndex = parseInt(body.mainImageIndex || '0');
+            imagesPaths = Array.isArray(body.images) ? body.images : [];
+        }
+
+        if (!title) {
+            return NextResponse.json({ error: 'Título es requerido' }, { status: 400 });
+        }
+
+        if (!imagesPaths.length) {
+            return NextResponse.json({ error: 'Al menos una imagen es requerida' }, { status: 400 });
+        }
+
+        // Asegurar que mainImageIndex es válido
+        if (mainImageIndex < 0 || mainImageIndex >= imagesPaths.length) {
+            mainImageIndex = 0;
+        }
+
+        const mainImage = imagesPaths[mainImageIndex];
+        const imagesJSON = JSON.stringify(imagesPaths);
+
+        const updateQuery = `
+            UPDATE projects 
+            SET title = ?, description = ?, category = ?, main_image = ?, images = ?, updated_at = NOW()
+            WHERE id = ?
+        `;
+
+        const updateResult = await executeQuery(updateQuery, [
+            title, description, category, mainImage, imagesJSON, id
+        ]);
+
+        if (updateResult.affectedRows === 0) {
+            return NextResponse.json({ error: 'No se pudo actualizar el proyecto' }, { status: 500 });
+        }
+
+        const [updatedProject] = await executeQuery(`
+            SELECT id, title, description, category, main_image AS mainImage, images, created_at AS createdAt, updated_at AS updatedAt
+            FROM projects WHERE id = ?
+        `, [id]);
+
+        let parsedImages = imagesPaths;
+        if (updatedProject?.images) {
+            try {
+                if (typeof updatedProject.images === 'string' && updatedProject.images.startsWith('[')) {
+                    parsedImages = JSON.parse(updatedProject.images);
+                }
+            } catch (parseError) {
+                parsedImages = imagesPaths;
+            }
+        }
+
+        console.log('✅ Proyecto actualizado exitosamente, ID:', id);
+
+        return NextResponse.json({
+            ...updatedProject,
+            images: parsedImages
+        }, { status: 200 });
+
+    } catch (error) {
+        console.error('❌ Error actualizando proyecto:', error);
+        return NextResponse.json({
+            error: 'Error interno al actualizar proyecto',
             details: error.message
         }, { status: 500 });
     }

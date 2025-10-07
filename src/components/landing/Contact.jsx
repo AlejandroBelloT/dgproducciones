@@ -29,7 +29,8 @@ export default function Contact() {
 
     async function onSubmit(e) {
         e.preventDefault();
-        const fd = new FormData(e.currentTarget);
+        const form = e.currentTarget;
+        const fd = new FormData(form);
         const payload = {
             name: fd.get('name'),
             email: fd.get('email'),
@@ -40,10 +41,35 @@ export default function Contact() {
             budget_estimated: fd.get('budget_estimated') || null,
             event_date: fd.get('event_date') || null
         };
+        
         setStatus('loading');
-        const res = await fetch('/api/contacts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (res.ok) setStatus('ok'); else setStatus('error');
-        e.currentTarget.reset();
+        
+        try {
+            const res = await fetch('/api/contacts', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(payload) 
+            });
+            
+            if (res.ok) {
+                setStatus('ok');
+                // Limpiar completamente el formulario
+                form.reset();
+                
+                // Opcional: Scroll hacia arriba para mostrar el mensaje de éxito
+                form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Resetear el estado después de 5 segundos
+                setTimeout(() => {
+                    setStatus(null);
+                }, 5000);
+            } else {
+                setStatus('error');
+            }
+        } catch (error) {
+            console.error('Error enviando formulario:', error);
+            setStatus('error');
+        }
     }
 
     return (
@@ -272,14 +298,6 @@ export default function Contact() {
                                 </div>
                             </div>
 
-                            {/* CTA adicional */}
-                            <div className="text-center bg-white/60 backdrop-blur rounded-2xl p-6 border border-gray-100">
-                                <h4 className="font-title text-lg font-bold text-gray-800 mb-2">¿Proyecto urgente?</h4>
-                                <p className="text-gray-600 mb-4 text-sm">Coordinemos una videollamada para conocer los detalles y acelerar tu propuesta</p>
-                                <Button variant="outline" size="lg" className="shimmer">
-                                    📅 Agendar Reunión Virtual
-                                </Button>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -4,7 +4,9 @@ export const useAdminStats = () => {
     const [stats, setStats] = useState({
         contacts: 0,
         content: 0,
+        projects: 0,
         team: 0,
+        users: 0,
         pendingContacts: 0
     })
     const [loading, setLoading] = useState(true)
@@ -15,10 +17,11 @@ export const useAdminStats = () => {
             setLoading(true)
             setError(null)
 
-            const [contactsRes, contentRes, teamRes] = await Promise.all([
+            const [contactsRes, contentRes, teamRes, usersRes] = await Promise.all([
                 fetch('/api/contacts'),
                 fetch('/api/projects'), // Cambiado de /api/content a /api/projects
-                fetch('/api/team')
+                fetch('/api/team'),
+                fetch('/api/users')
             ])
 
             // Verificar que todas las respuestas sean exitosas
@@ -29,11 +32,13 @@ export const useAdminStats = () => {
             const contacts = await contactsRes.json()
             const content = await contentRes.json()
             const team = await teamRes.json()
+            const users = usersRes.ok ? await usersRes.json() : []
 
             // Asegurar que los datos sean arrays
             const contactsArray = Array.isArray(contacts) ? contacts : []
             const contentArray = Array.isArray(content) ? content : []
             const teamArray = Array.isArray(team) ? team : []
+            const usersArray = Array.isArray(users) ? users : []
 
             // Calcular estadísticas
             const pendingContacts = contactsArray.filter(c =>
@@ -51,7 +56,9 @@ export const useAdminStats = () => {
             setStats({
                 contacts: contactsArray.length,
                 content: contentArray.length,
+                projects: contentArray.length, // Proyectos es lo mismo que contenido por ahora
                 team: teamArray.length,
+                users: usersArray.length,
                 pendingContacts,
                 completedContacts,
                 completionRate

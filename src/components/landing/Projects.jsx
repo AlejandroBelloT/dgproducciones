@@ -19,8 +19,8 @@ export default function Projects() {
     const [initialImageIndex, setInitialImageIndex] = useState(0);
 
     console.log('Projects component render:', {
-        projects: projects.length,
-        filteredProjects: filteredProjects.length,
+        projects: projects?.length || 0,
+        filteredProjects: filteredProjects?.length || 0,
         loading,
         selectedCategory,
         isModalOpen,

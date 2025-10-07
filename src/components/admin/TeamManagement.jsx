@@ -117,7 +117,7 @@ export default function TeamManagement() {
                     </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex max-sm:flex-col gap-2">
                     <select
                         value={departmentFilter}
                         onChange={(e) => setDepartmentFilter(e.target.value)}

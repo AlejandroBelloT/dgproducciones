@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import apiClient from '@/lib/api-client'
 
 export const useTeam = () => {
     const [team, setTeam] = useState([])
@@ -10,14 +11,8 @@ export const useTeam = () => {
         try {
             setLoading(true)
             setError(null)
-            const response = await fetch('/api/team')
-
-            if (!response.ok) {
-                throw new Error('Error al cargar el equipo')
-            }
-
-            const data = await response.json()
-            setTeam(data || [])
+            const response = await apiClient.getTeam()
+            setTeam(response.data || [])
         } catch (error) {
             console.error('Error fetching team:', error)
             setError(error.message)
@@ -27,21 +22,11 @@ export const useTeam = () => {
     }
 
     // Create team member
-    const createTeamMember = async (formData) => {
+    const createTeamMember = async (memberData) => {
         try {
-            const response = await fetch('/api/team', {
-                method: 'POST',
-                body: formData
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || 'Error al crear el colaborador')
-            }
-
-            const newMember = await response.json()
-            setTeam(prev => [...prev, newMember])
-            return { success: true, data: newMember }
+            const response = await apiClient.createTeamMember(memberData)
+            await fetchTeam() // Recargar lista
+            return { success: true, data: response.data }
         } catch (error) {
             console.error('Error creating team member:', error)
             return { success: false, error: error.message }
@@ -49,25 +34,11 @@ export const useTeam = () => {
     }
 
     // Update team member
-    const updateTeamMember = async (formData) => {
+    const updateTeamMember = async (id, memberData) => {
         try {
-            const response = await fetch('/api/team', {
-                method: 'PUT',
-                body: formData
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || 'Error al actualizar el colaborador')
-            }
-
-            const updatedMember = await response.json()
-            setTeam(prev =>
-                prev.map(member =>
-                    member.id === updatedMember.id ? updatedMember : member
-                )
-            )
-            return { success: true, data: updatedMember }
+            const response = await apiClient.updateTeamMember(id, memberData)
+            await fetchTeam() // Recargar lista
+            return { success: true, data: response.data }
         } catch (error) {
             console.error('Error updating team member:', error)
             return { success: false, error: error.message }
@@ -77,15 +48,7 @@ export const useTeam = () => {
     // Delete team member
     const deleteTeamMember = async (id) => {
         try {
-            const response = await fetch(`/api/team?id=${id}`, {
-                method: 'DELETE'
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || 'Error al eliminar el colaborador')
-            }
-
+            await apiClient.deleteTeamMember(id)
             setTeam(prev => prev.filter(member => member.id !== id))
             return { success: true }
         } catch (error) {

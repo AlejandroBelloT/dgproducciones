@@ -1,29 +1,18 @@
 'use client'
 
 import Button from '@/components/ui/Button'
-
-// Importar componentes modulares de proyectos
 import useProjects from '@/hooks/useProjects'
-import ProjectStats from './projects/ProjectStats'
 import ProjectForm from './projects/ProjectForm'
 import ProjectGrid from './projects/ProjectGrid'
 
 export default function ProjectManagement() {
     const {
-        // Estado de datos
         projects,
         loading,
-        stats,
-
-        // Estado del formulario
         showForm,
         setShowForm,
         editingProject,
         submitting,
-        formData,
-        setFormData,
-
-        // Acciones
         saveProject,
         deleteProject,
         resetForm,
@@ -52,20 +41,10 @@ export default function ProjectManagement() {
 
     return (
         <div className="space-y-4 sm:space-y-6">
-            {/* Estadísticas de proyectos */}
-            <ProjectStats
-                stats={stats}
-                loading={loading}
-                onCategoryClick={(category) => {
-                    // Funcionalidad futura para filtrar por categoría
-                    console.log('Filtrar por categoría:', category)
-                }}
-            />
-
             {/* Header con botón de acción */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h2 className="text-xl sm:text-2xl font-bold text-center sm:text-left">
-                    🎨 Gestión de Contenido
+                    🎨 Gestión de Proyectos
                 </h2>
                 <Button
                     variant="primary"
@@ -78,15 +57,14 @@ export default function ProjectManagement() {
             </div>
 
             {/* Formulario de proyecto */}
-            <ProjectForm
-                showForm={showForm}
-                onClose={handleCloseForm}
-                formData={formData}
-                setFormData={setFormData}
-                onSubmit={saveProject}
-                editingProject={editingProject}
-                submitting={submitting}
-            />
+            {showForm && (
+                <ProjectForm
+                    project={editingProject}
+                    onSave={saveProject}
+                    onCancel={handleCloseForm}
+                    isLoading={submitting}
+                />
+            )}
 
             {/* Grid de proyectos */}
             <ProjectGrid

@@ -1,13 +1,21 @@
-import '../globals.css';
+'use client';
 
-export const metadata = {
-    title: 'Admin | DG Producciones',
-};
+import '../globals.css';
+import { AuthProvider } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import AdminHeader from '@/components/admin/AdminHeader';
 
 export default function AdminLayout({ children }) {
     return (
-        <div className="min-h-screen bg-background text-foreground">
-            {children}
-        </div>
+        <AuthProvider>
+            <ProtectedRoute>
+                <div className="min-h-screen bg-background text-foreground">
+                    <AdminHeader />
+                    <main>
+                        {children}
+                    </main>
+                </div>
+            </ProtectedRoute>
+        </AuthProvider>
     );
 }

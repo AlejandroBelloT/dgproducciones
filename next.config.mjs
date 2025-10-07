@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    output: 'export', // Habilitar exportación estática
+    // output: 'export', // Comentado temporalmente para desarrollo con APIs dinámicas
     trailingSlash: true, // Compatibilidad con hosting tradicional
     images: {
         unoptimized: true, // Necesario para exportación estática
