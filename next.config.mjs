@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // Configuración mínima para Vercel
+    // Configuración de imágenes
     images: {
         remotePatterns: [
             {
@@ -13,6 +13,7 @@ const nextConfig = {
             },
         ],
     },
+    
     // Asegurar que las dependencias externas funcionen
     serverExternalPackages: ['mysql2']
 };
