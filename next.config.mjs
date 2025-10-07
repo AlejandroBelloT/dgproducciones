@@ -1,20 +1,41 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // output: 'export', // Comentado temporalmente para desarrollo con APIs dinámicas
-    trailingSlash: true, // Compatibilidad con hosting tradicional
+    // Configuración optimizada para Vercel
     images: {
-        unoptimized: true, // Necesario para exportación estática
         remotePatterns: [
             {
                 protocol: 'https',
                 hostname: 'images.unsplash.com',
             },
+            {
+                protocol: 'https',
+                hostname: 'dgproducciones.cl',
+            },
         ],
     },
-    // Configuración para build optimizado
-    async generateBuildId() {
-        return 'dgproducciones-maintenance-build'
-    }
+    // Configuración de headers para CORS
+    async headers() {
+        return [
+            {
+                source: '/api/:path*',
+                headers: [
+                    { key: 'Access-Control-Allow-Origin', value: '*' },
+                    { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, OPTIONS' },
+                    { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization, X-API-Key' },
+                ],
+            },
+        ];
+    },
+    // Configuración de redirects para compatibilidad
+    async redirects() {
+        return [
+            {
+                source: '/home',
+                destination: '/',
+                permanent: true,
+            },
+        ];
+    },
 };
 
 export default nextConfig;

@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "echo 'Build ya compilado localmente - usando .next existente'",
+    "build": "next build",
+    "build:local": "echo 'Build ya compilado localmente - usando .next existente'",
     "start": "next start",
     "lint": "eslint"
   },
