@@ -1,12 +1,6 @@
 import { NextResponse } from 'next/server'
 
 // ========================================
-// CONFIGURACIÓN DE MANTENIMIENTO
-// ========================================
-// Cambiar a false para desactivar el modo mantenimiento
-const MAINTENANCE_MODE = false  // DESACTIVADO - El sitio funciona normalmente
-
-// ========================================
 // FUNCIONES DE AUTENTICACIÓN
 // ========================================
 function decodeToken(token) {
@@ -39,8 +33,7 @@ export function middleware(request) {
         '/api',             // APIs
         '/favicon.ico',     // Favicon
         '/images',          // Imágenes
-        '/iconos',          // Iconos
-        '/maintenance'      // La página de mantenimiento
+        '/iconos'           // Iconos
     ]
 
     // Si la ruta está excluida, permitir acceso
@@ -88,18 +81,7 @@ export function middleware(request) {
         });
     }
 
-    // ========================================
-    // VERIFICAR MODO MANTENIMIENTO
-    // ========================================
-    // Si el mantenimiento está desactivado, continuar normalmente
-    if (!MAINTENANCE_MODE) {
-        return NextResponse.next()
-    }
-
-    // ========================================
-    // REDIRECCIÓN A MANTENIMIENTO
-    // ========================================
-    // Eliminar redirección a mantenimiento, continuar normalmente
+    // Continuar normalmente para todas las demás rutas
     return NextResponse.next()
 }
 

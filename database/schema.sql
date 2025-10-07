@@ -230,14 +230,6 @@ VALUES (
         false
     ),
     (
-        'maintenance_mode',
-        'false',
-        'boolean',
-        'system',
-        'Modo mantenimiento del sitio',
-        false
-    ),
-    (
         'analytics_enabled',
         'true',
         'boolean',

@@ -9,14 +9,7 @@ import FAQ from '@/components/landing/FAQ'
 import Contact from '@/components/landing/Contact'
 import FloatingButtons from '@/components/ui/FloatingButtons'
 
-// ========================================
-// CONFIGURACIÓN DE MANTENIMIENTO
-// ========================================
-// Cambiar MAINTENANCE_MODE a false para mostrar el sitio normal
-const MAINTENANCE_MODE = false
-
 export default function Home() {
-  // Sitio normal
   return (
     <div className="font-sans">
       <PublicHeader />
@@ -33,5 +26,4 @@ export default function Home() {
       <FloatingButtons />
     </div>
   )
-  // Eliminar llave sobrante
 }
