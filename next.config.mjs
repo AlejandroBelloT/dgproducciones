@@ -13,7 +13,7 @@ const nextConfig = {
             },
         ],
     },
-    
+
     // Asegurar que las dependencias externas funcionen
     serverExternalPackages: ['mysql2']
 };
