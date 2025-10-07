@@ -14,7 +14,7 @@ export default function Hero() {
 
             <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
                 <h1 className="font-title text-[44px] md:text-7xl font-bold mb-8 animate-bounce-in bg-gradient-to-r from-blue-800 via-green-600 to-blue-800 bg-clip-text text-transparent">
-                    DG PRODUCCIONES
+                    DG PRODUCCIONES prueba
                 </h1>
 
                 <p className="text-xl md:text-2xl mb-4 text-gray-700 animate-fade-up" style={{ animationDelay: '0.3s' }}>
