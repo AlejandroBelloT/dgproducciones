@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
-import { testConnection, executeQuery } from '@/lib/database'
+import { NextResponse } from 'next/server';
+import { executeQuery } from '@/lib/database';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {

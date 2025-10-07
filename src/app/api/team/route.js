@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import path from 'path';
 import { promises as fs } from 'fs';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {

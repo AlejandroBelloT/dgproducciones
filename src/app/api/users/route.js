@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { executeQuery } from '@/lib/database';
-import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 // Función para hashear contraseñas
 function hashPassword(password) {
