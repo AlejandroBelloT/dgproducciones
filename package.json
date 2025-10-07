@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:local": "echo 'Build ya compilado localmente - usando .next existente'",
     "start": "next start",
     "lint": "eslint"
   },
