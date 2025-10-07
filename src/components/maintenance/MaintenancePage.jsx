@@ -143,4 +143,4 @@ export default function MaintenancePage() {
             `}</style>
         </div>
     )
-// Eliminado: componente MaintenancePage
+}
